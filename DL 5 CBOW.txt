@@ -30,7 +30,7 @@ for sentence in sentences:
     sentence = re.sub(r'(?:^| )\w(?:$| )', ' ', sentence).strip()
     sentence = sentence.lower()
     clean_sentences.append(sentence)
-
+---------------------------------------------------------------------------------
 corpus = clean_sentences
 ---------------------------------------------------------------------------------
 # Tokenizing
@@ -114,4 +114,5 @@ for test in test_sentences:
     x_test = np.array([[word_to_index_map[w] for w in words]])
     pred = np.argmax(model.predict(x_test)[0])
     print(words, "=>", index_to_word_map[pred])
+
 
