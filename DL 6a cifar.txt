@@ -19,7 +19,7 @@ train_datagen = ImageDataGenerator(
 test_datagen = ImageDataGenerator(
  rescale=1.0 / 255,
 )
-
+---------------------------------------------------------------------------------
 train_batch_size = 5000
 train_generator = train_datagen.flow_from_directory(
     train_dir,
@@ -104,4 +104,5 @@ n = 9
 plt.imshow(x_test[n])
 print("Preditcted: ", labels[np.argmax(predicted_value[n])])
 print("Actual: ", labels[np.argmax(y_test[n])])
+
 
