@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,4 +103,5 @@ plt.ylabel('accuracy/Loss')
 plt.xlabel('epoch')
 plt.legend(['accuracy', 'val_accuracy', 'loss', 'val_loss'])
 plt.show()
+
 
