@@ -4,11 +4,11 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-
+---------------------------------------------------------------------------------
 # ✅ Define dataset directories (change these paths to your actual folder paths)
 train_dir = "dataset/train"
 test_dir = "dataset/test"
-
+---------------------------------------------------------------------------------
 # Data Preprocessing & Augmentation (Normalization included)
 train_datagen = ImageDataGenerator(
     rescale=1.0/255.0
@@ -17,7 +17,7 @@ train_datagen = ImageDataGenerator(
 test_datagen = ImageDataGenerator(
     rescale=1.0/255.0
 )
-
+---------------------------------------------------------------------------------
 # Load train and test data from folders
 train_data = train_datagen.flow_from_directory(
     train_dir,
@@ -32,13 +32,13 @@ test_data = test_datagen.flow_from_directory(
     batch_size=32,
     class_mode='sparse'
 )
-
+---------------------------------------------------------------------------------
 # Visualize one sample image
 x_batch, y_batch = next(train_data)
 plt.imshow(x_batch[0])
 plt.title(f"Class: {y_batch[0]}")
 plt.show()
-
+---------------------------------------------------------------------------------
 # ✅ Define same model structure
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=(32, 32, 3)),   # INPUT LAYER
@@ -47,36 +47,36 @@ model = keras.Sequential([
 ])
 
 model.summary()
-
+---------------------------------------------------------------------------------
 # Compile model
 model.compile(
     optimizer="sgd",
     loss="sparse_categorical_crossentropy",
     metrics=["accuracy"]
 )
-
+---------------------------------------------------------------------------------
 # Train model
 history = model.fit(
     train_data,
     epochs=8,
     validation_data=test_data
 )
-
+---------------------------------------------------------------------------------
 # Evaluate model
 test_loss, test_acc = model.evaluate(test_data)
 print("Loss= ", test_loss)
 print("Accuracy= ", test_acc)
-
+---------------------------------------------------------------------------------
 # Predict on one image
 n = 20
 x_batch, y_batch = next(test_data)
 predicted_value = model.predict(x_batch)
 print("Actual Number: ", y_batch[n])
 print("Predicted Number: ", np.argmax(predicted_value[n]))
-
+---------------------------------------------------------------------------------
 # Training history plots
 history = history.history
-
+---------------------------------------------------------------------------------
 plt.plot(history['accuracy'])
 plt.plot(history['val_accuracy'])
 plt.title("Model Accuracy")
@@ -84,7 +84,7 @@ plt.ylabel('accuracy')
 plt.xlabel('epoch')
 plt.legend(['Train', "Validation"], loc='upper left')
 plt.show()
-
+---------------------------------------------------------------------------------
 plt.plot(history['loss'])
 plt.plot(history['val_loss'])
 plt.title('Model Loss')
@@ -92,7 +92,7 @@ plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['Train', 'Validation'], loc='upper left')
 plt.show()
-
+---------------------------------------------------------------------------------
 plt.plot(history['accuracy'])
 plt.plot(history['val_accuracy'])
 plt.plot(history['loss'])
@@ -102,3 +102,4 @@ plt.ylabel('accuracy/Loss')
 plt.xlabel('epoch')
 plt.legend(['accuracy', 'val_accuracy', 'loss', 'val_loss'])
 plt.show()
+
