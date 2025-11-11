@@ -1,0 +1,116 @@
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Embedding, Lambda
+from tensorflow.keras.preprocessing.text import Tokenizer
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+import re
+
+# Disable TF warnings for cleaner output
+tf.get_logger().setLevel('ERROR')
+
+data = """We are about to study the idea of a computational process.
+Computational processes are abstract beings that inhabit computers.
+As they evolve, processes manipulate other abstract things called data.
+The evolution of a process is directed by a pattern of rules
+called a program. People create programs to direct processes. In effect,
+we conjure the spirits of the computer with our spells."""
+
+# Split sentences
+sentences = data.split(".")
+
+# Clean Data
+clean_sentences = []
+for sentence in sentences:
+    sentence = sentence.strip()
+    if sentence == "":
+        continue
+    sentence = re.sub('[^A-Za-z0-9]+', ' ', sentence)
+    sentence = re.sub(r'(?:^| )\w(?:$| )', ' ', sentence).strip()
+    sentence = sentence.lower()
+    clean_sentences.append(sentence)
+
+corpus = clean_sentences
+
+# Tokenizing
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(corpus)
+sequences = tokenizer.texts_to_sequences(corpus)
+print("Converted Corpus to Integer Sequences:\n", sequences)
+
+# Creating dictionaries
+index_to_word_map = {}
+word_to_index_map = {}
+for idx, seq in enumerate(sequences):
+    words = clean_sentences[idx].split()
+    for index, value in enumerate(seq):
+        index_to_word_map[value] = words[index]
+        word_to_index_map[words[index]] = value
+
+# Parameters
+vocab_size = len(tokenizer.word_index) + 1
+embedding_size = 10
+window_size = 2
+
+# Generate training data
+contexts = []
+targets = []
+for seq in sequences:
+    for i in range(window_size, len(seq) - window_size):
+        context = seq[i - window_size:i] + seq[i + 1:i + window_size + 1]
+        target = seq[i]
+        contexts.append(context)
+        targets.append(target)
+
+# Show samples
+for i in range(5):
+    sample_context = [index_to_word_map[j] for j in contexts[i]]
+    print(sample_context, "=>", index_to_word_map[targets[i]])
+
+# Convert to numpy
+X = np.array(contexts)
+Y = np.array(targets)
+
+# CBOW Model
+model = Sequential()
+model.add(Embedding(input_dim=vocab_size, output_dim=embedding_size))
+model.add(Lambda(lambda x: tf.reduce_mean(x, axis=1)))  # CBOW averaging
+model.add(Dense(256, activation='relu'))
+model.add(Dense(512, activation='relu'))
+model.add(Dense(vocab_size, activation='softmax'))
+
+# Compile model (no warning now)
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# Train model
+model.fit(X, Y, epochs=150, verbose=1)
+
+# Embeddings
+embeddings = model.get_weights()[0]
+
+# PCA for 2D visualization
+pca = PCA(n_components=2)
+reduced_embeddings = pca.fit_transform(embeddings)
+
+# Plot
+plt.figure(figsize=(7, 7))
+for word, idx in tokenizer.word_index.items():
+    x, y = reduced_embeddings[idx]
+    plt.scatter(x, y)
+    plt.annotate(word, (x, y))
+plt.show()
+
+# Testing
+test_sentences = [
+    "we are to study",
+    "create programs direct processes",
+    "spirits process study program",
+    "idea study people create"
+]
+
+for test in test_sentences:
+    words = test.split()
+    x_test = np.array([[word_to_index_map[w] for w in words]])
+    pred = np.argmax(model.predict(x_test)[0])
+    print(words, "=>", index_to_word_map[pred])

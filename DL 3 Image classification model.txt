@@ -1,0 +1,85 @@
+import numpy as np
+import pandas as pd
+import random
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Conv2D, Dense, MaxPooling2D
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.datasets import mnist
+
+# Load MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+print(x_train.shape)
+
+# Check pixel range
+print(x_train[0].min(), x_train[0].max())
+
+# Normalize the data
+x_train = (x_train - 0.0) / (255.0 - 0.0)
+x_test = (x_test - 0.0) / (255.0 - 0.0)
+print(x_train[0].min(), x_train[0].max())
+
+# Function to plot 20 sample digits
+def plot_digit(image, digit, plt, i):
+    plt.subplot(4, 5, i + 1)
+    plt.imshow(image, cmap=plt.get_cmap('gray'))
+    plt.title(f"Digit: {digit}")
+    plt.xticks([])
+    plt.yticks([])
+
+plt.figure(figsize=(16, 10))
+for i in range(20):
+    plot_digit(x_train[i], y_train[i], plt, i)
+plt.show()
+
+# Reshape for CNN input
+x_train = x_train.reshape((x_train.shape + (1,)))
+x_test = x_test.reshape((x_test.shape + (1,)))
+print(y_train[0:20])
+
+# Build Model
+model = Sequential([
+    Input(shape=(28, 28, 1)),                # ✅ Fixes warning
+    Conv2D(32, (3, 3), activation="relu"),
+    MaxPooling2D((2, 2)),
+    Flatten(),
+    Dense(100, activation="relu"),
+    Dense(10, activation="softmax")
+])
+
+optimizer = SGD(learning_rate=0.01, momentum=0.9)
+
+model.compile(
+    optimizer=optimizer,
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+model.summary()
+
+# Train Model
+model.fit(x_train, y_train, epochs=5, batch_size=64, validation_data=(x_test, y_test))
+
+# Predict random samples
+plt.figure(figsize=(16, 10))
+for i in range(20):
+    image = random.choice(x_test).squeeze()
+    prediction = model.predict(image.reshape(1, 28, 28, 1), verbose=0)
+    digit = np.argmax(prediction, axis=1)[0]
+    plot_digit(image, digit, plt, i)
+plt.show()
+
+# Evaluate model
+test_loss, test_accuracy = model.evaluate(x_test, y_test)
+print("Loss: ", test_loss)
+print("Accuracy: ", test_accuracy)
+
+# Test single prediction
+n = 30
+plt.imshow(x_test[n])
+predicted_value = model.predict(x_test)
+print("Actual Number: ", y_test[n])
+print("Predicted Number: ", np.argmax(predicted_value[n]))
